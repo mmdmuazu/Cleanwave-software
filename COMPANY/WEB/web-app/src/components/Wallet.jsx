@@ -24,8 +24,8 @@ const Wallet = () => {
   const [activeTab, setActiveTab] = useState("purchase");
   const [transactions, setTransactions] = useState([]);
   const [withdrawalForm, setWithdrawalForm] = useState({
-    bankCode: "",
-    accountNumber: "",
+    bankCode: "001",
+    accountNumber: "1234567890",
     accountName: "", // Usually fetched via API
     amount: "",
     pin: "",
@@ -49,9 +49,12 @@ const Wallet = () => {
         walletBalance(),
         getTransactionHistory(),
       ]);
+      console.log("Transaction histroy", txHistory.transactions.transactions);
       if (res.success) {
         setBalance(res.balance);
-        setTransactions(txHistory.data || []);
+        setTransactions(
+          txHistory.data || txHistory.transactions.transactions || []
+        );
       } else {
         setError("Failed to load wallet data");
       }
@@ -140,6 +143,7 @@ const Wallet = () => {
         serviceType: "airtime",
         network: "",
         phone: "",
+
         amount: "",
         dataBundle: "",
       });
@@ -208,7 +212,10 @@ const Wallet = () => {
         setLoading(false);
       } else {
         setBalance((prev) => prev - parseFloat(withdrawalForm.amount));
-        setSuccess("✅ Withdrawal request submitted successfully!");
+        setSuccess(
+          res.message || "✅ Withdrawal request submitted successfully!"
+        );
+        setVerified(false);
         setWithdrawalForm({
           bankCode: "",
           accountNumber: "",

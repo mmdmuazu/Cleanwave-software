@@ -27,11 +27,13 @@ exports.updateBalance = async (id, amount, trx) => {
   }
 };
 
-exports.deductBalance = async (id, amount, trx) => {
+exports.deductBalance = async ({id, amount, trx}) => {
   try {
     trx = trx || knex;
     if (!amount || isNaN(amount)) {
-      throw new Error("Invalid amount");
+      console.log("error in Amount")
+      return {success : false}
+      // throw new Error("Invalid amount");
     }
     if (id) {
       const wallet = await trx("Wallet").where({ user_id: id }).first();
@@ -39,11 +41,11 @@ exports.deductBalance = async (id, amount, trx) => {
         return { success: false, error: "Insufficient balance" };
       }
 
-      await trx("Wallet")
+      const deduct = await trx("Wallet")
         .where({ user_id: id })
         .decrement("balance", amount) // Subtracts 'amount' from the current balance
         .update({ updated_at: knex.fn.now() }); // You can still update other fields
-
+      console.log("deduct ",deduct)
       await createTransaction({
         userId: id,
         amount,

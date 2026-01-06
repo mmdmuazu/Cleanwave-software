@@ -67,10 +67,10 @@ exports.verifyAccount = async (req, res) => {
       return res.status(400).json({ error: "Account verification failed" });
     }
   } catch (err) {
-    console.error(
-      "Paystack Verification Error:",
-      err || err.response?.data || err.message
-    );
+    // console.error(
+    //   "Paystack Verification Error:",
+    //   err || err.response?.data || err.message
+    // );
     return res
       .status(500)
       .json({ error: "Verification service currently unavailable" });
@@ -80,12 +80,13 @@ exports.verifyAccount = async (req, res) => {
 exports.transfer = async (req, res) => {
   try {
     const { userId } = req.user;
-    const { accountNumber , bankCode, accountName, amount } = req.body;
+    // const { accountNumber , bankCode, accountName, amount } = req.body;
 
     // Use your specific test data for debugging:
-    // const accountNumber = "0001234567";
-    // const bankCode = "058"; // GTB bank code
-    // const accountName = "TEST ACCOUNT 1234567890";
+    const amount = 100;
+    const accountNumber = "9038448811";
+    const bankCode = "999992"; // GTB bank code
+    const accountName = "MUHAMMAD ALIYU MUAZU";
 
     // 1. Fetch User & Check Balance
     const user = await knex("Users").where({ id: userId }).first();
@@ -131,13 +132,13 @@ exports.transfer = async (req, res) => {
         },
       }
     );
-
+    // console.log("Transfer Response ::" ,transferResponse)
     if (transferResponse.data.status) {
       // 4. Deduct Balance & Record Transaction
-      await deductBalance({
+      const deducted = await deductBalance({
         id: userId,
         amount,
-        reference: transferResponse.data.data.reference,
+        // reference: transferResponse.data.data.reference,
       });
       // await addTransaction({
       //   userId,
@@ -145,23 +146,29 @@ exports.transfer = async (req, res) => {
       //   type: "debit",
       //   reference: transferResponse.data.data.reference,
       // });
+      console.log("Making deduction ::", deducted)
 
-      return res.status(200).json({
-        success: true,
-        message: "Transfer initiated successfully",
-        data: transferResponse.data.data,
-      });
+      if (deducted.success) {
+        return res.status(200).json({
+          success: true,
+          message: "Transfer initiated successfully",
+          data: transferResponse.data.data,
+        });
+      }
+      else{
+        return res.status(401).json({success:false,error:deducted.error})
+      }
     }
   } catch (err) {
     // Log the specific Axios error for debugging
-    console.log("This is transfer Error:: ",err)
+    console.log("This is transfer Error:: ", err);
     console.error(
       "Paystack Transfer Error Detail:",
       err.response?.data || err.message
     );
     const errorMsg =
       err.response?.data?.message || "Transfer service currently unavailable";
-    return res.status(500).json({ error: errorMsg });
+    return res.status(403).json({ success: false, error: errorMsg });
   }
 };
 
