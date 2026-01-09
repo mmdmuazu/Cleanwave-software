@@ -41,7 +41,7 @@ const adminLogin = async (req, res) => {
     });
   } catch (err) {
     console.log("AdminLogin:: ERROR", err);
-    return res.status(500).json({ error: "Server Error" });
+    return res.status(403).json({ error: "Unauthorized" });
   }
 };
 const adminCheckLogin = async (req, res) => {
@@ -63,7 +63,7 @@ const adminCheckLogin = async (req, res) => {
     });
   } catch (err) {
     console.log("adminCheckLogin:: ERROR", err);
-    return res.status(500).json({ success: false, error: "Server Error" });
+    return res.status(403).json({ success: false, error: "Unauthorized" });
   }
 };
 const adminLogout = (req, res) => {
@@ -125,9 +125,9 @@ const getAllInfo = async (req, res) => {
     });
   } catch (err) {
     console.error("AdminDashboard:: Error ", err);
-    return res.status(500).json({
+    return res.status(403).json({
       success: false,
-      error: err.message || "Server Error",
+      error: err.message || "Unauthorized",
     });
   }
 };
@@ -141,7 +141,7 @@ const totalUsers = async (req, res) => {
       return res.status(400).json({ error: users });
     }
   } catch (err) {
-    return res.status(500).json({ error: "Server Erro" });
+    return res.status(403).json({ error: "Unauthorized" });
   }
 };
 
@@ -188,7 +188,7 @@ const updateProfile = async (req, res) => {
     return res.status(200).json({ success: true, message: "Profile updated" });
   } catch (err) {
     console.log("adminControllers:: ERROR", err);
-    return res.status(500).json({ error: "Server Error" });
+    return res.status(403).json({ error: "Unauthorized" });
   }
 };
 
@@ -200,7 +200,7 @@ const getWasteData = async (req, res) => {
     }
     return res.status(200).json({ data });
   } catch (err) {
-    return res.status(500).json({ error: "Server Error" });
+    return res.status(403).json({ error: "Unauthorized" });
   }
 };
 const updateWasteStatus = async (req, res) => {
@@ -245,23 +245,32 @@ const updateWasteStatus = async (req, res) => {
         console.log("Payout calculated :", payout);
 
         // 5. Update user balance within the same transaction
+        const user = await knex("Users")
+          .where({ id: existingPickup.user_id })
+          .first();
+        const aggregator =
+          (await knex("Users").where({ id: user.created_by }).first()) || null;
+        if (!aggregator) {
+          throw new Error("aggregator not Found");
+        }
+        await updateBalance(aggregator.id, payout, trx);
         await updateBalance(existingPickup.user_id, payout, trx);
       }
 
       // 6. Update the pickup status
-      await trx("Users")
+      console.log("Existing Pickup Kg", existingPickup.kg);
+      await knex("Users")
         .where({ id: existingPickup.user_id })
-        .update({ capacity: 0 });
+        .decrement("capacity", existingPickup.kg);
       await trx("Waste_pickups").where({ id }).update({ status });
     });
-
     return res.status(200).json({ success: true });
   } catch (err) {
     if (err.message === "NOT_FOUND") {
       return res.status(404).json({ error: "No Pickups Found" });
     }
     console.error("Transaction Error:", err);
-    return res.status(500).json({ error: "Internal Server Error" });
+    return res.status(403).json({ error: "Unuthorized" });
   }
 };
 

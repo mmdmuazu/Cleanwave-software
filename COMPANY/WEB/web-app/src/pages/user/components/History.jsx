@@ -106,7 +106,7 @@ const Pickups = () => {
   );
 };
 
-const PickupCard = ({ data, tab, onAccept }) => {
+export const PickupCard = ({ data, tab, onAccept }) => {
   const {
     id,
     category,

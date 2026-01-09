@@ -44,6 +44,7 @@ const Profile = () => {
         });
       } else {
         setError("Failed to load profile");
+        handleLogout()
       }
 
       setLoading(false);

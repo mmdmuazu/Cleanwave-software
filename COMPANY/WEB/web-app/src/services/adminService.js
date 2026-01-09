@@ -1,6 +1,5 @@
 import api from "../utils/api";
 
-
 export const adminLogin = async (adminData) => {
   try {
     const response = await api.post("/admin/login", adminData);
@@ -68,6 +67,11 @@ export const updateWasteStatus = async (id, newStatus) => {
 
     return response.data;
   } catch (error) {
-    return error.message || "Failed to update Waste Status";
+    console.log("Error AdminSevice updateWaste:: ", error);
+    return (
+      error.response.data.error ||
+      error.response.data ||
+      "Failed to update Waste Status"
+    );
   }
 };

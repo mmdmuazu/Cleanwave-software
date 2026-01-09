@@ -8,11 +8,11 @@ exports.up = function (knex) {
     table.integer("user_id").notNullable().references("id").inTable("Users");
     table
       .integer("agent_id")
-      .nullable()
+      .notNullable()
       .references("id")
       .inTable("Users")
       .onDelete("SET NULL");
-    table.decimal("kg", 10, 2).notNullable();
+    table.decimal("kg", 14, 2).notNullable();
     table.string("category").notNullable();
     table.string("subcategory").nullable();
     table.string("address").notNullable();

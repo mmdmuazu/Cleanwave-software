@@ -102,11 +102,9 @@ exports.createUser = async (req, res) => {
     // 2. Correct Error Checking (matches your sendEmail return object)
     if (emailResponse.error) {
       console.error("Email dispatch failed:", emailResponse.error);
-      return res
-        .status(500)
-        .json({
-          error: "Failed to send verification email. Please try again.",
-        });
+      return res.status(500).json({
+        error: "Failed to send verification email. Please try again.",
+      });
     }
 
     // 3. Insert into Database only if email was sent successfully
@@ -158,16 +156,16 @@ exports.loginUser = async (req, res) => {
       return res.status(403).json({ error: "Email not verified" });
     }
     const valid = await bcrypt.compare(password, account.password);
-    // if (!valid) {
-    //   // console.log("this is the type of the password:: ", typeof account.password);
-    //   // console.log(
-    //   //   "authControolers:: Password: ",
-    //   //   typeof password,
-    //   //   account.password,
-    //   //   valid
-    //   // );
-    //   return res.status(401).json({ error: "Invalid credentials" });
-    // }
+    if (!valid) {
+      // console.log("this is the type of the password:: "  , typeof account.password);
+      // console.log(
+      //   "authControolers:: Password: ",
+      //   typeof password,
+      //   account.password,
+      //   valid
+      // );
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
 
     // Token
     const token = jwt.sign(

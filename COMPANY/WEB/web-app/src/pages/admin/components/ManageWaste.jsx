@@ -3,13 +3,22 @@ import {
   getAllWasteData,
   updateWasteStatus,
 } from "../../../services/adminService";
-import { CheckCircle, Clock, Truck, FileText, Search, X } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  Truck,
+  FileText,
+  Search,
+  X,
+} from "lucide-react";
 
 export default function SearchableWasteAdmin() {
   const [wasteData, setWasteData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("pending");
   const [searchQuery, setSearchQuery] = useState(""); // New search state
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -25,14 +34,20 @@ export default function SearchableWasteAdmin() {
   }, []);
 
   const handleStatusUpdate = async (id, newStatus) => {
+    setError("");
     try {
       const resp = await updateWasteStatus(id, newStatus);
-      console.log("This is the Response for status : ", resp);
-      setWasteData((prev) =>
-        prev.map((item) =>
-          item.id === id ? { ...item, status: newStatus } : item
-        )
-      );
+
+      console.log("This is the Response for status : ", resp + "hello");
+      if (resp && resp.success) {
+        setWasteData((prev) =>
+          prev.map((item) =>
+            item.id === id ? { ...item, status: newStatus } : item
+          )
+        );
+      } else {
+        setError(resp.error || "Unable to update");
+      }
     } catch (error) {
       console.error("Update failed", error);
     }
@@ -108,6 +123,15 @@ export default function SearchableWasteAdmin() {
             </button>
           ))}
         </nav>
+        {error && (
+          <div className="mb-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg flex items-start gap-3 animate-slideIn">
+            <AlertCircle
+              size={20}
+              className="text-red-600 flex-shrink-0 mt-0.5"
+            />
+            <p className="text-red-700 text-sm font-medium">{error}</p>
+          </div>
+        )}
 
         {/* DATA GRID */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">

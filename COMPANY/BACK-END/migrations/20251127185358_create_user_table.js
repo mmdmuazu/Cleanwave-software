@@ -23,7 +23,7 @@ exports.up = function (knex) {
     table.string("lga").nullable();
     table.string("address").nullable();
     table.integer("age").nullable();
-    table.integer("capacity").nullable().defaultTo(0);
+    table.decimal("capacity", 14, 2).defaultTo(0);
     table
       .integer("created_by")
       .unsigned()

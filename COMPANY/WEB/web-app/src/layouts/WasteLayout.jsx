@@ -7,7 +7,7 @@ import WalletPage from "../components/Wallet";
 import Profile from "../components/Profile";
 import { PageProvider } from "../contexts/PageContext";
 import { useUser } from "../contexts/UserContext";
-export default function WasteLayout() {
+export default function WasteLayout({ onSwitch }) {
   const [activeTab, setActiveTab] = useState("home");
   const { user, isLoading, role } = useUser();
   if (isLoading) {
@@ -26,7 +26,7 @@ export default function WasteLayout() {
       case "home":
         return (
           <div className="flex-1 w-full px-2 sm:px-6 max-w-3xl mx-auto items-start">
-            <HomePage />
+            <HomePage onSwitch={onSwitch} />
           </div>
         );
       case "pickups":

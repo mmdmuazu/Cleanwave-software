@@ -2,11 +2,11 @@
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.up = function(knex) {
+exports.up = function (knex) {
   return knex.schema.createTable("transactions", (table) => {
     table.increments("id").primary();
     // table.integer("user_id").unsigned().notNullable();
-    table.foreign("user_id").references("Users.id").onDelete("CASCADE");
+    table.integer("user_id").notNullable().references("id").inTable("Users");
     table.decimal("amount", 14, 2).notNullable();
     table.string("type").notNullable(); // e.g., 'credit' or 'debit'
     table.string("status").defaultTo("pending");
@@ -18,7 +18,6 @@ exports.up = function(knex) {
 //  * @param { import("knex").Knex } knex
 //  * @returns { Promise<void> }
 //  */
-exports.down = function(knex) {
-    return knex.schema.dropTableIfExists("transactions");
-
+exports.down = function (knex) {
+  return knex.schema.dropTableIfExists("transactions");
 };

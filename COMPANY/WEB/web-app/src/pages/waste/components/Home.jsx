@@ -20,7 +20,7 @@ import { getPickupsCount } from "../../../services/pickupService";
 //   { id: 5, name: "Paper" },
 // ];
 
-const HomePage = () => {
+const HomePage = ({ onSwitch }) => {
   const [form, setForm] = useState({
     agent: "",
     category: "",
@@ -64,8 +64,11 @@ const HomePage = () => {
           setTotalKg(Info.user.capacity);
         }
         if (pickupResp && pickupResp.success) {
-          console.log("Pickups ",pickupResp)
+          console.log("Pickups ", pickupResp);
           setPickupCount(pickupResp.data.data);
+        } else {
+          console.log("hello");
+          return "<h1  className='mt-200'>Error</h1>";
         }
       } catch (err) {
         console.error("Failed to fetch categories:", err);
@@ -186,6 +189,13 @@ const HomePage = () => {
             <p className="text-3xl font-bold text-[#4A7C2D]">{totalkg} kg</p>
           </div>
         </div>
+        <button
+          type="button"
+          onClick={() => onSwitch("history")}
+          className="w-full bg-[#4A7C2D] text-white mb-5 py-2.5 rounded-lg font-semibold hover:bg-green-700 transition duration-200"
+        >
+          Waste History
+        </button>
 
         {/* Form Card */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-8">
@@ -317,7 +327,7 @@ const HomePage = () => {
         </div>
 
         {/* Records Table */}
-        {records.length > 0 && (
+        {records.length == 0 && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
             <div className="p-6 border-b border-gray-200">
               <h3 className="text-xl font-bold text-gray-900">
