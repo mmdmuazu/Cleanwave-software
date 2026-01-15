@@ -28,8 +28,8 @@ const addAggregator = async (req, res) => {
       return res.status(400).json({ error: aggregator.error });
     }
   } catch (err) {
-    console.log("SERVER ERROR", err);
-    return res.status(500).json({ error: "Server Error" });
+    console.log("Unauthorized", err);
+    return res.status(403).json({ error: "Unauthorized" });
   }
 };
 
@@ -50,7 +50,7 @@ const getAggregatorRequest = async (req, res) => {
       return res.status(400).json({ error: "No aggregator Found" });
     }
   } catch {
-    return res.status(500).json({ error: "Server Error" });
+    return res.status(403).json({ error: "Unauthorized" });
   }
 };
 module.exports = { addAggregator, getAggregatorRequest };

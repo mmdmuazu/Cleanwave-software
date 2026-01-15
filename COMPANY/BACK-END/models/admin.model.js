@@ -19,7 +19,7 @@ const getAllUsers = async () => {
       );
     return { success: true, allUsers };
   } catch (err) {
-    console.log("Error in admin.models :", err);
+    // console.log("Error in admin.models :", err);
     return { success: false, error: "Server Error" };
   }
 };

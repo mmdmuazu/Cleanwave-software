@@ -30,7 +30,7 @@ const addWasteBank = async (req, res) => {
     }
   } catch (err) {
     console.log("error in waste bank controllers file ", err);
-    return res.status(500).json({ error: "Server Error" });
+    return res.status(403).json({ error: "Unauthorized" });
   }
 };
 //====================================
@@ -48,7 +48,7 @@ const getWasteBanks = async (req, res) => {
       return res.status(400).json({ error: "No Waste Banks Found" });
     }
   } catch (err) {
-    return res.status(500).json({ error: "Server Error" });
+    return res.status(403).json({ error: "Unauthorized" });
   }
 };
 
@@ -65,7 +65,7 @@ const getAll = async (req, res) => {
       return res.status(400).json({ error: "No Waste Banks Found" });
     }
   } catch (err) {
-    return res.status(500).json({ error: "Server Error" });
+    return res.status(403).json({ error: "Unauthorized" });
   }
 };
 
@@ -91,7 +91,7 @@ const getConnWasteBank = async (req, res) => {
     return res.status(400).json({ error: "Invelid request" });
   } catch (err) {
     console.log("wasteBankController :: getConnWasteBank ERROR", err);
-    return res.status(900).json({ error: "Server Error " });
+    return res.status(403).json({ error: "Unauthorized " });
   }
 };
 

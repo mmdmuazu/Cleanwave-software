@@ -62,7 +62,7 @@ const { resetEmail } = require("../utils/resetEmail");
 //     });
 //   } catch (error) {
 //     console.error("Auth Error:", error);
-//     return res.status(500).json({success:false, error: "Server Error" });
+//     return res.status(403).json({success:false, error: "Unauthorized" });
 //   }
 // };
 
@@ -102,7 +102,7 @@ exports.createUser = async (req, res) => {
     // 2. Correct Error Checking (matches your sendEmail return object)
     if (emailResponse.error) {
       console.error("Email dispatch failed:", emailResponse.error);
-      return res.status(500).json({
+      return res.status(403).json({
         error: "Failed to send verification email. Please try again.",
       });
     }
@@ -130,7 +130,7 @@ exports.createUser = async (req, res) => {
     });
   } catch (error) {
     console.error("Auth Error:", error);
-    return res.status(500).json({ success: false, error: "Server Error" });
+    return res.status(403).json({ success: false, error: "Unauthorized" });
   }
 };
 
@@ -157,13 +157,6 @@ exports.loginUser = async (req, res) => {
     }
     const valid = await bcrypt.compare(password, account.password);
     if (!valid) {
-      // console.log("this is the type of the password:: "  , typeof account.password);
-      // console.log(
-      //   "authControolers:: Password: ",
-      //   typeof password,
-      //   account.password,
-      //   valid
-      // );
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
@@ -173,27 +166,7 @@ exports.loginUser = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
-    // In authControllers.js
 
-    // ... (rest of the try/catch block remains the same until the token is signed) ...
-
-    // *** FIX START ***
-    // Define a constant cookie name
-    // const COOKIE_NAME = "accessToken";
-
-    // Clear only this single cookie name
-    // res.clearCookie(COOKIE_NAME);
-
-    // Set the cookie using the single, constant name
-    // res.cookie(COOKIE_NAME, token, {
-    //   httpOnly: true,
-    //   secure: process.env.NODE_ENV === "production", // Set secure to true in production
-    //   sameSite: "strict",
-    //   maxAge: 24 * 60 * 60 * 1000,
-    // });
-    // *** FIX END ***
-
-    // console.log("This is the cookie name:: ", COOKIE_NAME);
     res.status(200).json({
       success: true,
       token: token,
@@ -202,7 +175,7 @@ exports.loginUser = async (req, res) => {
     });
   } catch (err) {
     console.log("Login Error:: ", err);
-    return res.status(500).json({ error: "Server Error" });
+    return res.status(403).json({ error: "Unauthorized" });
   }
 };
 // ... (rest of the catch block) ...
@@ -227,7 +200,7 @@ exports.checkLogin = async (req, res) => {
     });
   } catch (err) {
     console.log("checkLogin Error:: ", err);
-    return res.status(500).json({ success: false, error: "Server Error" });
+    return res.status(403).json({ success: false, error: "Unauthorized" });
   }
 };
 
@@ -252,9 +225,6 @@ exports.logout = (req, res) => {
 // ===============================
 // In authControllers.js
 
-// ===============================
-// Middleware - Protect Routes
-// ===============================
 exports.authenticate = (req, res, next) => {
   // Check the 'authorization' header (Express lowers the case automatically)
   const authHeader = req.headers["authorization"];
@@ -277,48 +247,6 @@ exports.authenticate = (req, res, next) => {
     next();
   });
 };
-// exports.authenticate = (req, res, next) => {
-//   // const token = req.cookies?.accessToken || req.cookies?.authToken; // *** Look ONLY for 'accessToken' ***
-//     const authHeader = req.headers['authorization'];
-//     console.log("Authenticate Middleware:: Auth Header:: ", authHeader);
-//   if (!authHeader) return res.status(401).json({ error: "No token provided" });
-
-//   const token = authHeader.split(" ")[1]; // Extract token from "Bearer <token>"
-
-//   // console.log removed for clarity
-
-//   jwt.verify(token, process.env.JWT_SECRET, (err, decodedPayload) => {
-//     // Renamed to decodedPayload
-//     if (err) return res.status(403).json({ error: "Invalid token" });
-
-//     req.user = decodedPayload; // This now contains { userId, role }
-//     // req.role = decodedPayload.role; // This line is optional now as role is in req.user
-
-//     next();
-//   });
-// };
-
-// exports.authenticate = (req, res, next) => {
-//   const cookies = req.cookies;
-
-//   const role = Object.keys(cookies).find((r) =>
-//     ["user", "agent", "wastebank", "aggregator", "admin"].includes(r)
-//   );
-
-//   if (!role) return res.status(401).json({ error: "No token provided" });
-
-//   const token = cookies[role];
-//   console.log("auth authController:: ", role);
-
-//   jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-//     if (err) return res.status(403).json({ error: "Invalid token" });
-
-//     req.user = decoded;
-//     req.role = role;
-
-//     next();
-//   });
-// };
 
 // ===============================
 // Get Logged In User Profile
@@ -345,12 +273,12 @@ exports.getProfile = async (req, res) => {
       .where({ id: userId, role: role })
       .first();
 
-    if (!account) return res.status(404).json({ error: "User not found" });
+    if (!account) return res.status(401).json({ error: "Invalid credentials" });
 
     return res.status(200).json({ success: true, user: account });
   } catch (error) {
     console.error("Profile Error:", error);
-    return res.status(500).json({ error: "Server Error" });
+    return res.status(403).json({ error: "Unauthorized" });
   }
 };
 // ===============================
@@ -366,8 +294,8 @@ exports.resetPassword = async (req, res) => {
     const account = await knex("Users").where({ email }).first();
     if (!account) {
       // Return 200 even if user not found for security (prevents email enumeration)
-      // or 404 if you prefer explicit errors
-      return res.status(404).json({ error: "User not found" });
+      // or 401 if you prefer explicit errors
+      return res.status(401).json({ error: "Invalid credentials" });
     } // <--- Added missing closing brace
 
     const resetToken = jwt.sign({ email }, process.env.EMAIL_TOKEN_SECRET, {
@@ -388,6 +316,6 @@ exports.resetPassword = async (req, res) => {
   } catch (error) {
     // <--- Removed the extra stray "}" before this
     console.error("Reset Password Error:", error);
-    return res.status(500).json({ error: "Server Error" });
+    return res.status(403).json({ error: "Unauthorized" });
   }
 };

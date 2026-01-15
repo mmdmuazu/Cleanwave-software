@@ -255,17 +255,19 @@ const updateWasteStatus = async (req, res) => {
         }
         await updateBalance(aggregator.id, payout, trx);
         await updateBalance(existingPickup.user_id, payout, trx);
+        const reduceCapacity = await knex("Users")
+          .where({ id: existingPickup.user_id })
+          .decrement("capacity", parseFloat(existingPickup.kg));
+        console.log("Reduce capacity Message:: ", reduceCapacity);
       }
 
       // 6. Update the pickup status
-      console.log("Existing Pickup Kg", existingPickup.kg);
-      await knex("Users")
-        .where({ id: existingPickup.user_id })
-        .decrement("capacity", existingPickup.kg);
+      console.log("Existing Pickup Kg", typeof existingPickup.kg);
       await trx("Waste_pickups").where({ id }).update({ status });
     });
     return res.status(200).json({ success: true });
   } catch (err) {
+    console.log("Error", err);
     if (err.message === "NOT_FOUND") {
       return res.status(404).json({ error: "No Pickups Found" });
     }

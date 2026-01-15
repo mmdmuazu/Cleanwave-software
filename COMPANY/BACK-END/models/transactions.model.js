@@ -14,7 +14,7 @@ const addTransactionModel = async ({ userId, amount, transactionType }) => {
     return { success: true, transaction };
   } catch (err) {
     console.log("ERROR FOUND :", err);
-    return { success: false, error: "Server Error" };
+    return { success: false, error: "Unauthorized" };
   }
 };
 
@@ -25,7 +25,7 @@ const fetchTransactions = async (userId) => {
       .select("*");
     return { success: true, transactions };
   } catch (err) {
-    return { success: false, error: "Server Error" };
+    return { success: false, error: "Unauthorized" };
   }
 };
 

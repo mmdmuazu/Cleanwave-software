@@ -1,0 +1,12 @@
+
+/* TEAM */
+Lead Software Developer: Muhammad Aliyu Muazu
+Email : muhammadaliyumuazu@gmail.com
+LinkedIn: www.linkedin.com/in/muhammad-aliyu-muazu-269705254
+Portfolio: https://mmdmuazu.github.io/portfolio/
+From: Kano State, Nigeria
+
+/* SITE */
+Last update: 2026/01/13
+Software Built for: Cleanwave Recycling Nigeria Limited
+Tech Stack: [React, vite, typescript, tailwindcss, firebase]

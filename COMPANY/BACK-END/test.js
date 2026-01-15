@@ -40,9 +40,19 @@
 
 // verif('muhammadaliyumuazu@gmail.com',"AMir");
 
-const knex = require("./db/knex");
-const d = async () => {
-  const resp = await knex("Users").where({ id: 1 }).decrement("capacity", 20.50);
-  console.log(resp)
-};
-d();
+// const knex = require("./db/knex");
+// const d = async () => {
+//   const num = "20"
+//   const resp = await knex("Users").where({ id: 3 }).increment("capacity", parseFloat(num));
+//   console.log(resp)
+// };
+// d();
+const { distributePickupRevenue } = require("./services/updateBalance");
+let price = "10"
+let kg = "10"
+
+const payout = distributePickupRevenue(price);
+const userPayout = Math.round(payout.userShare * kg )
+const agentShare = Math.round(payout.agentShare * kg)
+console.log(payout);
+console.log(userPayout,agentShare)

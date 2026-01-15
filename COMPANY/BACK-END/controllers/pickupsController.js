@@ -4,7 +4,10 @@ const {
   getPickupCount,
   createWastePickup,
 } = require("../models/pickups.model");
-const { updateBalance } = require("../services/updateBalance");
+const {
+  updateBalance,
+  distributePickupRevenue,
+} = require("../services/updateBalance");
 
 /**
  * Utility for unified responses
@@ -23,12 +26,12 @@ exports.getPickupCountRequests = async (req, res) => {
     return sendResponse(res, 200, { success: true, data: stats });
   } catch (err) {
     console.error(`[Stats Error]: ${err.message}`);
-    return sendError(res, 500, "Failed to fetch pickup statistics");
+    return sendError(res, 403, "Failed to fetch pickup statistics");
   }
 };
 
 /**
- * @desc Create a specific pickup request assigned to an agent
+ *  Create a specific pickup request assigned to an agent
  */
 exports.createPickupRequest = async (req, res) => {
   try {
@@ -53,18 +56,24 @@ exports.createPickupRequest = async (req, res) => {
     return sendResponse(res, 201, { success: true, message: result.message });
   } catch (err) {
     console.error(`[CreatePickup Error]: ${err.message}`);
-    return sendError(res, 500, "Internal Server Error");
+    return sendError(res, 403, "Unauthorized");
   }
 };
 exports.wastePickupRequest = async (req, res) => {
   try {
-    const { category,subcategory, kg, note } = req.body;
+    const { category, subcategory, kg, note } = req.body;
     const userId = req.user.userId;
 
     if (!userId || !kg || !category) {
       return sendError(res, 400, "All fields are required");
     }
-
+    const user = await knex("Users").where({ id: userId }).first();
+    if (!user) {
+      return sendError(res, 401, "Invalid Credentials");
+    }
+    if (Number(user.capacity) == 0 || kg > Number(user.capacity)) {
+      return sendError(res, 401, "Cant make Pickups at the moment");
+    }
     const pickup = await createWastePickup({
       userId,
       kg,
@@ -83,7 +92,7 @@ exports.wastePickupRequest = async (req, res) => {
     }
   } catch (err) {
     console.error(`[WastePickup Error]: ${err.message}`);
-    return sendError(res, 500, "Internal Server Error");
+    return sendError(res, 403, "Unauthorized");
   }
 };
 
@@ -114,7 +123,7 @@ const getAgentPickupsByStatus = (status) => async (req, res) => {
     return sendResponse(res, 200, { success: true, data: pickups });
   } catch (err) {
     console.error(`[Fetch ${status} Error]: ${err.message}`);
-    return sendError(res, 500, "Error retrieving pickup records");
+    return sendError(res, 403, "Error retrieving pickup records");
   }
 };
 
@@ -146,7 +155,7 @@ exports.acceptPickup = async (req, res) => {
     });
   } catch (err) {
     console.error(`[Accept Error]: ${err.message}`);
-    return sendError(res, 500, "Failed to accept pickup");
+    return sendError(res, 403, "Failed to accept pickup");
   }
 };
 
@@ -228,11 +237,13 @@ exports.wasteDelivered = async (req, res) => {
       .update({ updated_at: knex.fn.now() });
 
     // Calculate Payout
-    const payout = Math.round(pricePerKg * kg);
+    const payout = distributePickupRevenue(pricePerKg); //Math.round(pricePerKg * kg);
 
+    const userPayout = Math.round(payout.userShare * kg);
+    const agentPayout = Math.round(payout.agentShare * kg);
     // Update Balances
-    await updateBalance(pickup.user_id, payout, trx);
-    await updateBalance(agent, payout, trx);
+    await updateBalance(pickup.user_id, userPayout, trx);
+    await updateBalance(agent, agentPayout, trx);
 
     await trx.commit();
     return sendResponse(res, 200, {
@@ -245,7 +256,7 @@ exports.wasteDelivered = async (req, res) => {
     console.error(`[Delivery Process Error]: ${err}`);
     return sendError(
       res,
-      500,
+      403,
       "Transactional error during delivery verification"
     );
   }
@@ -348,7 +359,7 @@ exports.wasteDelivered = async (req, res) => {
 //     console.error(`[Delivery Process Error]: ${err}`);
 //     return sendError(
 //       res,
-//       500,
+//       403,
 //       "Transactional error during delivery verification"
 //     );
 //   }

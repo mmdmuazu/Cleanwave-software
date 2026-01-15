@@ -561,7 +561,7 @@ export default function Register({ onSwitch }) {
         setUiState({
           loading: false,
           error: "",
-          success: "Account created! Redirecting to login...",
+          success: `Account created! Verification sent to ${form.email}`,
         });
         setTimeout(() => navigate("/"), 2000);
       } else {

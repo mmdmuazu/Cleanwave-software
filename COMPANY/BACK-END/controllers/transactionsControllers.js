@@ -24,7 +24,7 @@ exports.addTransaction = async (req, res) => {
       return res.status(400).json({ error: transaction.error });
     }
   } catch (err) {
-    return res.status(500).json({ error: "Server Error" });
+    return res.status(403).json({ error: "Unauthorized" });
   }
 };
 
@@ -38,7 +38,7 @@ exports.getTransactions = async (req, res) => {
       return res.status(400).json({ error: "No Transactions Found" });
     }
   } catch (err) {
-    return res.status(500).json({ error: "Server Error" });
+    return res.status(403).json({ error: "Unauthorized" });
   }
 };
 
@@ -68,26 +68,27 @@ exports.verifyAccount = async (req, res) => {
     }
   } catch (err) {
     console.error(
-      "Paystack Verification Error:",
+      "Paystack Verifi Unauthorized:",
       err || err.response?.data || err.message
     );
     return res
-      .status(500)
+      .status(403)
       .json({ error: "Verification service currently unavailable" });
   }
 };
 
-exports.transfer = async (req, res) => {
-  try {
-    const { userId } = req.user;
-    const { accountNumber , bankCode, accountName, amount } = req.body;
 
     // Use your specific test data for debugging:
     // const amount = 100;
-    
+
     // const accountNumber = "9038448811";
     // const bankCode = "999992"; // GTB bank code
     // const accountName = "MUHAMMAD ALIYU MUAZU";
+exports.transfer = async (req, res) => {
+  const trx = knex.transaction();
+  try {
+    const { userId } = req.user;
+    const { accountNumber, bankCode, accountName, amount } = req.body;
 
     // 1. Fetch User & Check Balance
     const user = await knex("Users").where({ id: userId }).first();
@@ -139,6 +140,7 @@ exports.transfer = async (req, res) => {
       const deducted = await deductBalance({
         id: userId,
         amount,
+        trx,
         // reference: transferResponse.data.data.reference,
       });
       // await addTransaction({
@@ -147,7 +149,7 @@ exports.transfer = async (req, res) => {
       //   type: "debit",
       //   reference: transferResponse.data.data.reference,
       // });
-      console.log("Making deduction ::", deducted);
+      console.log("Making deduction ::", deducted, userId, amount);
 
       if (deducted.success) {
         return res.status(200).json({
@@ -161,9 +163,9 @@ exports.transfer = async (req, res) => {
     }
   } catch (err) {
     // Log the specific Axios error for debugging
-    console.log("This is transfer Error:: ", err);
+    console.log("This is trUnauthorized:: ", err);
     console.error(
-      "Paystack Transfer Error Detail:",
+      "Paystack TrUnauthorized Detail:",
       err.response?.data || err.message
     );
     const errorMsg =

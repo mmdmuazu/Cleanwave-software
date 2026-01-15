@@ -10,16 +10,16 @@ exports.getWasteCategories = async (req, res) => {
     }
     return res.status(200).json({ success: true, categories });
   } catch (error) {
-    console.error("Error fetching waste categories:", error);
-    return res.status(500).json({ error: "Server Error" });
+    // console.error("Error fetching waste categories:", error);
+    return res.status(403).json({ error: "Unauthorized" });
   }
 };
 
 exports.addWasteCategory = async (req, res) => {
   const { name, price, subcategory } = req.body;
-  console.log("addWasteCategory:: ", req.body);
+  // console.log("addWasteCategory:: ", req.body);
   if (!name || !price) {
-    return res.status(400).json({ error: "Name and Price are required" });
+    return res.status(400).json({ error: "All Fields are required" });
   }
   if (name) {
     const existingCategory = await knex("Categories").where({ name }).first();
@@ -33,7 +33,7 @@ exports.addWasteCategory = async (req, res) => {
       .returning("*");
 
     if (subcategory && Array.isArray(subcategory) && subcategory.length > 0) {
-      const validSubcategories = subcategory.filter(sub => sub.price != null);
+      const validSubcategories = subcategory.filter((sub) => sub.price != null);
       if (validSubcategories.length > 0) {
         const subCategoriesData = validSubcategories.map((sub) => ({
           name: sub.name,
@@ -47,7 +47,7 @@ exports.addWasteCategory = async (req, res) => {
       .status(201)
       .json({ success: true, message: "Category added successfully" });
   } catch (error) {
-    console.error("Error adding waste category:", error);
-    return res.status(500).json({ error: "Server Error" });
+    // console.error("Error adding waste category:", error);
+    return res.status(403).json({ error: "Unauthorized" });
   }
 };

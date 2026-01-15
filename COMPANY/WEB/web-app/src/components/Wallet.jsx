@@ -24,8 +24,8 @@ const Wallet = () => {
   const [activeTab, setActiveTab] = useState("purchase");
   const [transactions, setTransactions] = useState([]);
   const [withdrawalForm, setWithdrawalForm] = useState({
-    bankCode: "001",
-    accountNumber: "1234567890",
+    bankCode: "",
+    accountNumber: "",
     accountName: "", // Usually fetched via API
     amount: "",
     pin: "",
